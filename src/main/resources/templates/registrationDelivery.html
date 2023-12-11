@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+
+<head>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <style>
+        .password-verdict {
+            color: #000;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"
+        integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://kit.fontawesome.com/c802c16641.js" crossorigin="anonymous"></script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Entregas</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mb-5">Cadastro de entregas</h1>
+
+        <div class="row mb-4">
+            <div class="col-12">
+                <select class="form-select" id="farmacyId">
+                    <option value="" selected disabled hidden>Escolha uma farmácia</option>
+                    <option th:each="farmacy : ${farmacies}" th:value="${farmacy.id}"
+                        th:text="${farmacy.farmacyName} +' ('+${farmacy.farmacyCityName}+')'"></option>
+                </select>
+            </div>
+        </div>
+        <div id="deliveries">
+            <div class="card">
+                <div class="card-body">
+                    <h5 name="countHelper" style="color: #6b6b6b;">#001</h5>
+                    <div class="form-group row">
+                        <div class="col-12">
+                            <label class="form-label">Número de Protocolo</label>
+                            <input type="text" class="form-control" name="numberProtocol" required="required" />
+                        </div>
+                        <div class="col-6 mt-3">
+                            <div class="form-check">
+                                <input class="form-check-input" onClick="addAddress($(this))" type="checkbox" value=""
+                                    name="addAddress" id="addAddress_001">
+                                <label class="form-check-label">
+                                    Incluir endereço de entrega
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group row d-none" id="addressGroup_001">
+                        <div class="col-sm-12 col-md-6">
+                            <label class="form-label mt-4" for="cep">CEP</label>
+                            <input class="form-control" type="text" name="cep" id="cep_001"
+                                onfocusout="searchCep($(this))">
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                            <label class="form-label mt-4" for="address">Endereço</label>
+                            <input class="form-control" type="text" name="address" id="address_001">
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                            <label class="form-label mt-4" for="number">Número</label>
+                            <input class="form-control" type="number" name="number" id="number_001">
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                            <label class="form-label mt-4" for="complement">Complemento</label>
+                            <input class="form-control" type="text" name="complement" id="complement_001">
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                            <label class="form-label mt-4" for="state">Estado</label>
+                            <input class="form-control" type="text" name="state" id="state_001">
+                        </div>
+                        <div class="col-sm-12 col-md-6">
+                            <label class="form-label mt-4" for="city">Cidade</label>
+                            <input class="form-control" type="text" name="city" id="city_001">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row my-4">
+            <div class="col-12 d-md-flex justify-content-md-end">
+                <button id="adicionarInput" class="btn btn-primary">Incluir novo protocolo</button>
+            </div>
+        </div>
+        <div class="d-grid gap-2">
+            <button id="cadastrar" type="submit" class="btn btn-success btn-lg">Cadastrar Entrega(s)</button>
+        </div>
+    </div>
+
+    <script>
+        let deliveries = [];
+        let farmacyId;
+        let countDeliveries = 1;
+
+        $(document).ready(function () {
+
+
+
+            $("#adicionarInput").click(function (e) {
+                countDeliveries++;
+
+                let newDeliveryHtml = `<div id="cardDelivery_${("000" + countDeliveries).slice(-3)}" class="card mt-4">` +
+                    `    <div class="card-body">` +
+                    `     <div class="row">` +
+                    `         <div class="col-6">` +
+                    `    <h5 name="countHelper" style="color: #6b6b6b;">#${("000" + countDeliveries).slice(-3)}</h5>` +
+                    `         </div>` +
+                    `         <div class="col-6 d-md-flex justify-content-md-end">` +
+                    `             <button id="deleteButton_${("000" + countDeliveries).slice(-3)}" class="btn btn-danger" onClick="deleteDelivery($(this))"><i class="fa-solid fa-trash"></i></button>` +
+                    `         </div>` +
+                    `     </div>` +
+                    `        <div class="form-group row">` +
+                    `            <div class="col-12">` +
+                    `                <label class="form-label mt-4">Número de Protocolo</label>` +
+                    `                <input type="text" class="form-control" name="numberProtocol" required="required" />` +
+                    `            </div>` +
+                    `            <div class="col-6 mt-3">` +
+                    `                <div class="form-check">` +
+                    `                    <input class="form-check-input" onClick="addAddress($(this))" type="checkbox" value="" name="addAddress" id="addAddress_${("000" + countDeliveries).slice(-3)}">` +
+                    `                    <label class="form-check-label">` +
+                    `                        Incluir endereço de entrega` +
+                    `                    </label>` +
+                    `                </div>` +
+                    `            </div>` +
+                    `        </div>` +
+                    `        <div class="form-group row d-none" id="addressGroup_${("000" + countDeliveries).slice(-3)}">` +
+                    `            <div class="col-sm-12 col-md-6">` +
+                    `                <label class="form-label mt-4" for="cep">CEP</label>` +
+                    `                <input class="form-control" type="text" name="cep" id="cep_${("000" + countDeliveries).slice(-3)}" onfocusout="searchCep($(this))">` +
+                    `            </div>` +
+                    `            <div class="col-sm-12 col-md-6">` +
+                    `                <label class="form-label mt-4" for="address">Endereço</label>` +
+                    `                <input class="form-control" type="text" name="address" id="address_${("000" + countDeliveries).slice(-3)}">` +
+                    `            </div>` +
+                    `            <div class="col-sm-12 col-md-6">` +
+                    `                <label class="form-label mt-4" for="number">Número</label>` +
+                    `                <input class="form-control" type="text" name="number" id="number_${("000" + countDeliveries).slice(-3)}">` +
+                    `            </div>` +
+                    `            <div class="col-sm-12 col-md-6">` +
+                    `                <label class="form-label mt-4" for="complement">Complemento</label>` +
+                    `                <input class="form-control" type="text" name="complement" id="complement_${("000" + countDeliveries).slice(-3)}">` +
+                    `            </div>` +
+                    `            <div class="col-sm-12 col-md-6">` +
+                    `                <label class="form-label mt-4" for="state">Estado</label>` +
+                    `                <input class="form-control" type="text" name="state" id="state_${("000" + countDeliveries).slice(-3)}">` +
+                    `            </div>` +
+                    `            <div class="col-sm-12 col-md-6">` +
+                    `                <label class="form-label mt-4" for="city">Cidade</label>` +
+                    `                <input class="form-control" type="text" name="city" id="city_${("000" + countDeliveries).slice(-3)}">` +
+                    `            </div>` +
+                    `        </div>` +
+                    `    </div>` +
+                    `</div>`;
+
+                $("#deliveries").append(newDeliveryHtml);
+            });
+
+            $("#cadastrar").click(function (e) {
+                let token = $("meta[name='_csrf']").attr("content");
+                let header = $("meta[name='_csrf_header']").attr("content");
+
+                farmacyId = $('#farmacyId').val();
+                $('[name="numberProtocol"]').each(function (index) {
+                    deliveries.push($(this).val());
+                });
+
+
+                $.ajax({
+                    url: "/entrega/saveDelivery",
+                    type: 'POST',
+                    data: JSON.stringify({ deliveriesDto: deliveries, farmacyId: farmacyId }),
+                    contentType: 'application/json',
+                    mimeType: 'application/json',
+                    success: function (data) {
+                        window.location = '/dashboard/home?success="Time criado!"';
+                    },
+                    error: function (e) {
+                        console.error(e);
+                        alert("ERROR: " + e);
+                    }
+                });
+            });
+        });
+
+        function searchCep(element) {
+            const idElementNumber = $(element).attr("id").slice(-3);
+            const value = $(element).val().replace(/[^0-9]+/, '');
+            const url = `https://viacep.com.br/ws/${value}/json/`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(json => {
+                    if (json.logradouro) {
+                        console.log(json);
+                        console.log($('#address_' + idElementNumber));
+                        console.log(`${json.logradouro}, ${json.bairro}`);
+                        $('#address_' + idElementNumber).val(`${json.logradouro}, ${json.bairro}`);
+                        $('#city_' + idElementNumber).val(json.localidade);
+                        $('#state_' + idElementNumber).val(json.uf);
+                    }
+                    else {
+                        alert("Cep não encontrado!")
+                    }
+                });
+        };
+
+        function addAddress(element) {
+            const idAddressElementNumber = $(element).attr("id").slice(-3);
+            const idAddressElement = $("#addressGroup_" + idAddressElementNumber);
+
+            if (element.is(':checked')) {
+                idAddressElement.removeClass("d-none");
+            } else {
+                idAddressElement.addClass("d-none");
+            }
+        };
+
+        function deleteDelivery(element) {
+            let count = 1;
+            const idDeleteButtonNumber = $(element).attr("id").slice(-3);
+            const idCard = $("#cardDelivery_" + idDeleteButtonNumber);
+
+            idCard.remove();
+            countDeliveries--;
+
+            $('[name="countHelper"]').each(function () {
+                $(this).html(`#${("000" + count).slice(-3)}`);
+                console.log($(this))
+                count++;
+            });
+        }
+
+
+
+
+    </script>
+</body>
+
+</html>

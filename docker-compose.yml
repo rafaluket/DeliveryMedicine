@@ -1,0 +1,13 @@
+services:
+  mysql:
+    image: "mysql"
+    ports:
+      - "3306:3306"
+      - "33060:33060"
+    volumes:
+      - .data/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=C0nnect@78216
+      - MYSQL_DATABASE=main_db
+      - MYSQL_USER=adminEdi
+      - MYSQL_PASSWORD=C0nnect@78216
